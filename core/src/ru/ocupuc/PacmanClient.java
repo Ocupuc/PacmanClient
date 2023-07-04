@@ -24,6 +24,7 @@ public class PacmanClient {
     }
 
     public void moveTo(Vector2 direction) {
+        System.out.println("Moving to: " + direction);
         position.add(direction);
     }
 }
