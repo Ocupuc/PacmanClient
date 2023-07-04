@@ -10,8 +10,7 @@ public class KeyboardAdapter extends InputAdapter {
 
     private ClientConnection clientConnection;
     private Vector2 direction = new Vector2();
-
-    private String currentCommand = null;
+    private boolean up, down, left, right;
 
     public KeyboardAdapter() {
         try {
@@ -23,70 +22,69 @@ public class KeyboardAdapter extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        String command = null;
         switch (keycode) {
-            case Input.Keys.A: command = "LEFT"; break;
-            case Input.Keys.D: command = "RIGHT"; break;
-            case Input.Keys.W: command = "UP"; break;
-            case Input.Keys.S: command = "DOWN"; break;
+            case Input.Keys.A: left = true; break;
+            case Input.Keys.D: right = true; break;
+            case Input.Keys.W: up = true; break;
+            case Input.Keys.S: down = true; break;
         }
 
-        if (command != null) {
-            try {
-                String response = clientConnection.sendCommand(command);
-                System.out.println("Получен ответ от сервера: " + response);
-                currentCommand = response;  // сохраняем полученную команду
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        updateCommand();
 
         return false;
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        // сбрасываем текущую команду, когда кнопка отпущена
-        currentCommand = null;
+        switch (keycode) {
+            case Input.Keys.A: left = false; break;
+            case Input.Keys.D: right = false; break;
+            case Input.Keys.W: up = false; break;
+            case Input.Keys.S: down = false; break;
+        }
+
+        updateCommand();
+
         return false;
     }
 
-    public Vector2 getDirection(){
-        direction.set(0,0);
+    private void updateCommand() {
+        String command = null;
 
-        // Используем сохранённую команду для задания направления
-        if(currentCommand != null) {
-            switch(currentCommand) {
-                case "UP":
-                    direction.add(0, 5);
-                    break;
-                case "DOWN":
-                    direction.add(0, -5);
-                    break;
-                case "LEFT":
-                    direction.add(-5, 0);
-                    break;
-                case "RIGHT":
-                    direction.add(5, 0);
-                    break;
-                default:
-                    // Неизвестная команда, ничего не делаем
-                    break;
-            }
+        if (up) {
+            command = "UP";
+        } else if (down) {
+            command = "DOWN";
+        } else if (left) {
+            command = "LEFT";
+        } else if (right) {
+            command = "RIGHT";
         }
 
+        if (command == null) {
+            command = "STOP";
+        }
+
+        try {
+            String response = clientConnection.sendCommand(command);
+            direction.set(parseResponse(response));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Vector2 getDirection(){
         return direction;
     }
 
     private Vector2 parseResponse(String response) {
-        // Предположим, что эхо-сервер просто возвращает команду, которую мы отправили.
-        // Мы преобразуем эту команду обратно в направление.
         switch (response) {
-            case "LEFT": return direction.add(-1, 0);
-            case "RIGHT": return direction.add(1, 0);
-            case "UP": return direction.add(0, 1);
-            case "DOWN": return direction.add(0, -1);
-            default: return direction.add(0, 0); // если получен неизвестный ответ, то не двигаемся
+            case "LEFT": return direction.set(-1, 0);
+            case "RIGHT": return direction.set(1, 0);
+            case "UP": return direction.set(0, 1);
+            case "DOWN": return direction.set(0, -1);
+            case "STOP": return direction.set(0, 0);
+            default: return direction.set(0, 0);
         }
     }
 
