@@ -1,5 +1,6 @@
 package ru.ocupuc;
 
+import com.google.gson.Gson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -8,33 +9,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainHandler extends SimpleChannelInboundHandler<String> {  // Inbound обрабатываем вход
-
-    private static final List<Channel> channels = new ArrayList<Channel>();
+public class MainHandler extends SimpleChannelInboundHandler<String> {
+    private static final List<Channel> channels = new ArrayList<>();
     private static int newClientIndex;
     private String clientName;
 
-    //ctrl+O выбираем методы для переопределения
+    private Level level;
+
+    public MainHandler(Level level) {
+        this.level = level;
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("Клиент подключился " + ctx);
         channels.add(ctx.channel());
         clientName = "Клиент #" + newClientIndex;
         newClientIndex++;
+
+        Gson gson = new Gson();
+        String levelData = gson.toJson(level.getLevelMatrix());
+        ctx.writeAndFlush(levelData);
     }
 
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, String s) throws Exception {
-//         System.out.println("Получено сообщение от " + ctx.channel().remoteAddress() + ": " + s);
-        String out = String.format(s);
-        ctx.writeAndFlush(out);
-    }
 
+        ctx.writeAndFlush(s);
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         System.out.println("Клиент " + clientName + " отвалился");
         channels.remove(ctx.channel());
-        ctx.close(); // закрываем соединение в котором возникло исключение
+        ctx.close();
     }
 }
 

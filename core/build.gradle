@@ -1,6 +1,32 @@
-sourceCompatibility = 1.7
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+plugins {
+    id 'java'
+}
 
-sourceSets.main.java.srcDirs = [ "src/" ]
+group 'com.example'
+version '1.0'
 
-eclipse.project.name = appName + "-core"
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'io.netty:netty-all:4.1.94.Final'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+eclipse {
+    project {
+        name = 'core'
+    }
+}

@@ -12,31 +12,50 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 public class ServerApp {
-
     private static final String HOST = "localhost";
     private static final int PORT = 8189;
 
+    private Level level;
+
+    public ServerApp() {
+        level = new Level("D:\\libGDX\\PacmanGame\\PacmanServer\\src\\main\\resources\\pacman_field.txt");
+    }
+
+
+
     public static void main(String[] args) {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1); //пулл потоков для подключающихся клиентов
-        EventLoopGroup workerGroup = new NioEventLoopGroup(); // пул потоков для обработки
+        ServerApp serverApp = new ServerApp();
+        serverApp.start();
+    }
+
+
+
+    private void start() {
+
+        level.printLevelMatrix(); // Выводим уровень на консоль для проверки
+
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         try {
-            ServerBootstrap b = new ServerBootstrap(); //преднастройка нашего сервака
-            b.group(bossGroup, workerGroup)          //тут мы говорим-Сервак, используй два пула потоков
-                    .channel(NioServerSocketChannel.class) //создаем стандартный Socket
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new StringDecoder(),  //перевод байкода в троку
-                                    new StringEncoder(), new MainHandler());          //добавлям обработчик MainHandler
+                            socketChannel.pipeline().addLast(
+                                    new StringDecoder(),
+                                    new StringEncoder(),
+                                    new MainHandler(level)
+                            );
                         }
                     });
-            ChannelFuture future = b.bind(8189).sync(); // запускаем наш сервер и слушаем порт
-            future.channel().closeFuture().sync(); //тут мы ждем пока кто-то остановит сервер
-
+            ChannelFuture future = b.bind(PORT).sync();
+            future.channel().closeFuture().sync();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            bossGroup.shutdownGracefully(); //как только сервак остановили нам надо закрыть пулы потоков
+            bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
     }
