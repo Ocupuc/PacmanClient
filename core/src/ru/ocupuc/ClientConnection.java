@@ -21,7 +21,6 @@ public class ClientConnection {
         return input.readLine();
     }
 
-
     public void close() throws IOException {
         input.close();
         output.close();
@@ -40,7 +39,7 @@ public class ClientConnection {
         StringBuilder sb = new StringBuilder();
         String line;
 
-        while ((line = input.readLine()) != null) {
+        while ((line = input.readLine()) != null && !line.equals("END")) {
             sb.append(line);
         }
 

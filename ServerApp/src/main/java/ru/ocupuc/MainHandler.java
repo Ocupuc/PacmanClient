@@ -29,12 +29,11 @@ public class MainHandler extends SimpleChannelInboundHandler<String> {
 
         Gson gson = new Gson();
         String levelData = gson.toJson(level.getLevelMatrix());
-        ctx.writeAndFlush(levelData);
+        ctx.writeAndFlush(levelData + "\nEND\n"); // добавляем маркер конца данных уровня
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String s) throws Exception {
-
         ctx.writeAndFlush(s);
     }
 
@@ -45,4 +44,5 @@ public class MainHandler extends SimpleChannelInboundHandler<String> {
         ctx.close();
     }
 }
+
 

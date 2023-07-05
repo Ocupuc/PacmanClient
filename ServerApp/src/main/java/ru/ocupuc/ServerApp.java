@@ -22,17 +22,13 @@ public class ServerApp {
     }
 
 
-
     public static void main(String[] args) {
         ServerApp serverApp = new ServerApp();
         serverApp.start();
     }
 
 
-
     private void start() {
-
-        level.printLevelMatrix(); // Выводим уровень на консоль для проверки
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
